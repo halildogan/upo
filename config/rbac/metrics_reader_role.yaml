@@ -1,0 +1,10 @@
+# ClusterRole that scrapers (e.g. Prometheus) bind to in order to GET /metrics.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: upo-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get

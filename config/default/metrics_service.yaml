@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: upo-controller-manager-metrics-service
+  namespace: upo-system
+  labels:
+    app.kubernetes.io/name: unified-platform-operator
+    control-plane: controller-manager
+spec:
+  selector:
+    control-plane: controller-manager
+  ports:
+  - name: https
+    port: 8443
+    targetPort: 8443
+    protocol: TCP

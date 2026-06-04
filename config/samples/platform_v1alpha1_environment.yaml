@@ -1,0 +1,14 @@
+apiVersion: platform.upo.io/v1alpha1
+kind: Environment
+metadata:
+  name: sample-dev
+  namespace: tenant-sample
+spec:
+  tenantRef:
+    name: sample
+  type: development
+  profile: small
+  gitops:
+    provider: none
+  variables:
+    LOG_LEVEL: debug

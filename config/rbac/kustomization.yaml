@@ -1,0 +1,12 @@
+resources:
+# All RBAC will be applied under this service account in the deployment namespace.
+- service_account.yaml
+- role.yaml
+- role_binding.yaml
+- leader_election_role.yaml
+- leader_election_role_binding.yaml
+# The metrics_auth_role grants the manager the permissions to verify scrape
+# requests; metrics_reader is bound by external scrapers (e.g. Prometheus).
+- metrics_auth_role.yaml
+- metrics_auth_role_binding.yaml
+- metrics_reader_role.yaml

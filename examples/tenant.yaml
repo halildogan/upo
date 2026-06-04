@@ -1,0 +1,43 @@
+# A fully-specified enterprise Tenant. Reconciling this creates the namespace
+# "tenant-acme" with the quota, per-container limits, baseline NetworkPolicy, and
+# an admin RoleBinding for the listed subjects.
+apiVersion: platform.upo.io/v1alpha1
+kind: Tenant
+metadata:
+  name: acme
+spec:
+  displayName: "Acme Corporation"
+  tier: enterprise
+  namespacePrefix: tenant
+  networkIsolation: Baseline
+  quota:
+    hard:
+      requests.cpu: "20"
+      requests.memory: 40Gi
+      limits.cpu: "40"
+      limits.memory: 80Gi
+      pods: "100"
+      services: "30"
+      persistentvolumeclaims: "20"
+  limits:
+    default:
+      cpu: 500m
+      memory: 512Mi
+    defaultRequest:
+      cpu: 100m
+      memory: 128Mi
+    max:
+      cpu: "4"
+      memory: 8Gi
+  admins:
+  - kind: Group
+    name: acme-platform-admins
+  - kind: ServiceAccount
+    name: acme-ci
+    namespace: tenant-acme
+  extraLabels:
+    cost-center: "cc-4471"
+    business-unit: retail
+  lifecycle:
+    deletionPolicy: Delete
+    suspended: false

@@ -1,0 +1,13 @@
+# Ignore everything not needed to build the manager binary.
+.git/
+.github/
+bin/
+dist/
+docs/
+examples/
+charts/
+test/
+*.md
+*.tar.gz
+Makefile
+.golangci.yml

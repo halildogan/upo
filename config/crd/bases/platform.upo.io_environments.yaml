@@ -1,0 +1,247 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.5
+  name: environments.platform.upo.io
+spec:
+  group: platform.upo.io
+  names:
+    categories:
+    - upo
+    - platform
+    kind: Environment
+    listKind: EnvironmentList
+    plural: environments
+    shortNames:
+    - env
+    singular: environment
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.tenantRef.name
+      name: Tenant
+      type: string
+    - jsonPath: .spec.type
+      name: Type
+      type: string
+    - jsonPath: .status.phase
+      name: Phase
+      type: string
+    - jsonPath: .status.url
+      name: URL
+      type: string
+    - jsonPath: .status.expiresAt
+      name: Expires
+      type: date
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: |-
+          Environment is a tenant-scoped, optionally GitOps-driven application
+          environment. Reconciling it provisions a workload namespace, projects
+          configuration, and (when configured) drives a GitOps application.
+        type: object
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: EnvironmentSpec is the desired state of an Environment.
+            type: object
+            required:
+            - tenantRef
+            - type
+            properties:
+              domain:
+                description: Domain is an optional ingress hostname surfaced in Status.URL once ready.
+                type: string
+                maxLength: 253
+              gitops:
+                description: GitOps configures delegation to a GitOps engine.
+                type: object
+                required:
+                - provider
+                properties:
+                  autoSync:
+                    type: boolean
+                  prune:
+                    type: boolean
+                  provider:
+                    type: string
+                    enum:
+                    - none
+                    - argocd
+                    - flux
+                    default: none
+              profile:
+                description: Profile selects the compute footprint for the environment namespace.
+                type: string
+                enum:
+                - small
+                - medium
+                - large
+                - xlarge
+                default: medium
+              secretRefs:
+                description: SecretRefs reference secret keys in the environment's namespace.
+                type: array
+                items:
+                  description: SecretKeySelector references a single key within a namespaced Secret.
+                  type: object
+                  required:
+                  - key
+                  - name
+                  properties:
+                    key:
+                      type: string
+                      minLength: 1
+                    name:
+                      type: string
+                      minLength: 1
+                    optional:
+                      type: boolean
+                x-kubernetes-list-type: atomic
+              source:
+                description: Source declares the Git source to deploy. Required when GitOps.Provider != none.
+                type: object
+                required:
+                - repoURL
+                properties:
+                  path:
+                    type: string
+                    default: .
+                  repoURL:
+                    type: string
+                    minLength: 1
+                    pattern: ^(https?://|git@|ssh://).+
+                  revision:
+                    type: string
+                    default: HEAD
+              suspend:
+                description: Suspend pauses reconciliation and (for GitOps) sync, without deletion.
+                type: boolean
+              tenantRef:
+                description: TenantRef binds this environment to an owning, cluster-scoped Tenant. Immutable.
+                type: object
+                required:
+                - name
+                properties:
+                  name:
+                    type: string
+                    minLength: 1
+                    maxLength: 253
+              ttl:
+                description: TTL is the lifetime of an ephemeral environment. Required for type=ephemeral.
+                type: string
+              type:
+                description: Type classifies the environment and drives type-specific defaulting/policy.
+                type: string
+                enum:
+                - development
+                - staging
+                - production
+                - preview
+                - ephemeral
+              variables:
+                description: Variables are non-secret configuration values projected into a ConfigMap.
+                type: object
+                additionalProperties:
+                  type: string
+          status:
+            description: EnvironmentStatus is the observed state of an Environment.
+            type: object
+            properties:
+              conditions:
+                type: array
+                items:
+                  description: Condition contains details for one aspect of the current state of this API Resource.
+                  type: object
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  properties:
+                    lastTransitionTime:
+                      type: string
+                      format: date-time
+                    message:
+                      type: string
+                      maxLength: 32768
+                    observedGeneration:
+                      type: integer
+                      format: int64
+                      minimum: 0
+                    reason:
+                      type: string
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                    status:
+                      type: string
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                    type:
+                      type: string
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              expiresAt:
+                type: string
+                format: date-time
+              lastReconcileTime:
+                type: string
+                format: date-time
+              observedGeneration:
+                type: integer
+                format: int64
+              sync:
+                description: Sync reports the latest GitOps synchronization outcome.
+                type: object
+                properties:
+                  lastSyncTime:
+                    type: string
+                    format: date-time
+                  message:
+                    type: string
+                  phase:
+                    type: string
+                    enum:
+                    - Unknown
+                    - Synced
+                    - OutOfSync
+                    - Error
+                  revision:
+                    type: string
+              targetNamespace:
+                type: string
+              url:
+                type: string
+              phase:
+                type: string
+                enum:
+                - Pending
+                - Provisioning
+                - Syncing
+                - Healthy
+                - Degraded
+                - Suspended
+                - Terminating
+                - Failed
+    served: true
+    storage: true
+    subresources:
+      status: {}

@@ -1,0 +1,24 @@
+# Prometheus Operator ServiceMonitor scraping the secure metrics endpoint. The
+# scraper authenticates with its ServiceAccount token; bind that account to the
+# upo-metrics-reader ClusterRole so the manager authorizes the scrape.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: upo-controller-manager-metrics-monitor
+  namespace: upo-system
+  labels:
+    app.kubernetes.io/name: unified-platform-operator
+    control-plane: controller-manager
+spec:
+  endpoints:
+  - path: /metrics
+    port: https
+    scheme: https
+    bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    tlsConfig:
+      # The metrics server uses a self-signed cert by default. Point this at the
+      # cert-manager CA and set insecureSkipVerify=false for verified scrapes.
+      insecureSkipVerify: true
+  selector:
+    matchLabels:
+      control-plane: controller-manager

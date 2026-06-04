@@ -1,0 +1,34 @@
+Unified Platform Operator {{ .Chart.AppVersion }} installed as release "{{ .Release.Name }}" in namespace "{{ .Release.Namespace }}".
+
+The control plane is now reconciling. Verify it is running:
+
+  kubectl -n {{ .Release.Namespace }} get deploy {{ include "upo.fullname" . }}
+  kubectl -n {{ .Release.Namespace }} logs deploy/{{ include "upo.fullname" . }} -f
+
+Create your first tenant:
+
+  kubectl apply -f - <<'EOF'
+  apiVersion: platform.upo.io/v1alpha1
+  kind: Tenant
+  metadata:
+    name: demo
+  spec:
+    tier: standard
+    quota:
+      hard:
+        pods: "20"
+  EOF
+
+  kubectl get tenants
+  kubectl get ns tenant-demo
+
+{{- if .Values.webhooks.enabled }}
+
+Admission webhooks are ENABLED. This requires cert-manager to be installed
+{{- if .Values.certManager.enabled }} (the chart created a self-signed Issuer + Certificate for you).{{ else }}; you must supply the serving certificate and CA bundle yourself.{{ end }}
+{{- end }}
+{{- if .Values.metrics.serviceMonitor.enabled }}
+
+A Prometheus ServiceMonitor was created. Ensure the scraping ServiceAccount is
+bound to the {{ include "upo.fullname" . }}-metrics-reader-style permissions.
+{{- end }}

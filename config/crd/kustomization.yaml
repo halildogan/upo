@@ -1,0 +1,7 @@
+# This kustomization aggregates the CRD bases. controller-gen writes the bases;
+# this file is the stable entrypoint referenced by config/default and `make install`.
+resources:
+- bases/platform.upo.io_tenants.yaml
+- bases/platform.upo.io_environments.yaml
+- bases/platform.upo.io_integrations.yaml
+# +kubebuilder:scaffold:crdkustomizeresource

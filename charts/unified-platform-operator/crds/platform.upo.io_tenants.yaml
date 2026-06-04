@@ -1,0 +1,235 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.5
+  name: tenants.platform.upo.io
+spec:
+  group: platform.upo.io
+  names:
+    categories:
+    - upo
+    - platform
+    kind: Tenant
+    listKind: TenantList
+    plural: tenants
+    shortNames:
+    - tn
+    singular: tenant
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.tier
+      name: Tier
+      type: string
+    - jsonPath: .status.namespace
+      name: Namespace
+      type: string
+    - jsonPath: .status.phase
+      name: Phase
+      type: string
+    - jsonPath: .status.conditions[?(@.type=="Ready")].status
+      name: Ready
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: |-
+          Tenant is the top-level multi-tenancy boundary of the platform. Reconciling a
+          Tenant provisions an isolated namespace plus its ResourceQuota, LimitRange,
+          default NetworkPolicy and RBAC bindings.
+        type: object
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: TenantSpec is the desired state of a Tenant.
+            type: object
+            properties:
+              admins:
+                description: |-
+                  Admins are RBAC subjects granted the tenant-admin ClusterRole, bound within
+                  the tenant namespace. They can manage workloads but not escape the tenant.
+                type: array
+                items:
+                  description: SubjectReference identifies an RBAC subject to be granted access within a tenant.
+                  type: object
+                  required:
+                  - kind
+                  - name
+                  properties:
+                    kind:
+                      type: string
+                      enum:
+                      - User
+                      - Group
+                      - ServiceAccount
+                    name:
+                      type: string
+                      minLength: 1
+                    namespace:
+                      description: Namespace of the subject. Required only when Kind is ServiceAccount.
+                      type: string
+                x-kubernetes-list-type: atomic
+              displayName:
+                description: DisplayName is a human-friendly label for the tenant shown in UIs.
+                type: string
+                maxLength: 128
+              extraLabels:
+                description: |-
+                  ExtraLabels are propagated onto the provisioned namespace and all
+                  operator-managed child resources.
+                type: object
+                additionalProperties:
+                  type: string
+              lifecycle:
+                description: Lifecycle controls suspension and deletion behaviour.
+                type: object
+                properties:
+                  deletionPolicy:
+                    description: DeletionPolicy decides whether the tenant namespace is deleted or orphaned.
+                    type: string
+                    enum:
+                    - Delete
+                    - Orphan
+                    default: Delete
+                  suspended:
+                    description: Suspended, when true, cordons workloads without deleting tenant data.
+                    type: boolean
+              limits:
+                description: Limits declares per-container default requests/limits for the namespace.
+                type: object
+                properties:
+                  default:
+                    type: object
+                    additionalProperties: &quantity
+                      anyOf:
+                      - type: integer
+                      - type: string
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      x-kubernetes-int-or-string: true
+                  defaultRequest:
+                    type: object
+                    additionalProperties: *quantity
+                  max:
+                    type: object
+                    additionalProperties: *quantity
+              namespacePrefix:
+                description: |-
+                  NamespacePrefix is prepended to the tenant name to form the provisioned
+                  namespace. Immutable after creation.
+                type: string
+                default: tenant
+                maxLength: 40
+                pattern: ^[a-z0-9]([-a-z0-9]*[a-z0-9])?$
+              networkIsolation:
+                description: NetworkIsolation selects the default NetworkPolicy posture.
+                type: string
+                enum:
+                - None
+                - Baseline
+                - Strict
+                default: Baseline
+              quota:
+                description: Quota declares the hard resource limits enforced on the tenant namespace.
+                type: object
+                properties:
+                  hard:
+                    description: |-
+                      Hard is the set of desired hard limits enforced for the tenant namespace.
+                      Keys are standard ResourceQuota resource names.
+                    type: object
+                    additionalProperties: *quantity
+              tier:
+                description: Tier selects the commercial/operational tier of the tenant.
+                type: string
+                enum:
+                - free
+                - standard
+                - enterprise
+                default: standard
+          status:
+            description: TenantStatus is the observed state of a Tenant.
+            type: object
+            properties:
+              conditions:
+                description: Conditions represent the latest available observations of the tenant's state.
+                type: array
+                items:
+                  description: Condition contains details for one aspect of the current state of this API Resource.
+                  type: object
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  properties:
+                    lastTransitionTime:
+                      type: string
+                      format: date-time
+                    message:
+                      type: string
+                      maxLength: 32768
+                    observedGeneration:
+                      type: integer
+                      format: int64
+                      minimum: 0
+                    reason:
+                      type: string
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                    status:
+                      type: string
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                    type:
+                      type: string
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              environmentCount:
+                type: integer
+                format: int32
+              integrationCount:
+                type: integer
+                format: int32
+              lastReconcileTime:
+                type: string
+                format: date-time
+              namespace:
+                description: Namespace is the name of the namespace provisioned for this tenant.
+                type: string
+              observedGeneration:
+                type: integer
+                format: int64
+              phase:
+                type: string
+                enum:
+                - Pending
+                - Provisioning
+                - Active
+                - Suspended
+                - Terminating
+                - Failed
+    served: true
+    storage: true
+    subresources:
+      status: {}

@@ -1,0 +1,12 @@
+apiVersion: platform.upo.io/v1alpha1
+kind: Tenant
+metadata:
+  name: sample
+spec:
+  displayName: "Sample Tenant"
+  tier: standard
+  quota:
+    hard:
+      requests.cpu: "4"
+      requests.memory: 8Gi
+      pods: "40"

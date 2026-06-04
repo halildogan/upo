@@ -1,0 +1,71 @@
+# Default values for the unified-platform-operator chart.
+
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/halildogan/upo
+  # tag defaults to .Chart.AppVersion when empty.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+# Leader election guarantees a single active reconciler; required if replicaCount > 1.
+leaderElection:
+  enabled: true
+
+metrics:
+  enabled: true
+  # Serve metrics over HTTPS with TokenReview/SubjectAccessReview authz.
+  secure: true
+  port: 8443
+  serviceMonitor:
+    # Requires the Prometheus Operator CRDs.
+    enabled: false
+
+webhooks:
+  enabled: true
+
+# When true, a cert-manager Issuer + Certificate issue the webhook serving cert
+# and ca-injector injects the CA bundle into the webhook configurations.
+# cert-manager must be installed in the cluster. Set false only if you supply
+# the serving cert and caBundle by other means.
+certManager:
+  enabled: true
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+podAnnotations: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+    - ALL
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Extra args appended to the manager command.
+extraArgs: []

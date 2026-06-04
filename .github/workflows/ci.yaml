@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Verify generated artifacts are up to date
+        run: |
+          make manifests generate
+          git diff --exit-code || (echo "::error::Generated files are out of date. Run 'make manifests generate' and commit." && exit 1)
+      - name: Run tests (envtest)
+        run: make test
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: cover.out
+          if-no-files-found: ignore
+
+  build:
+    name: Build manager & image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Build binary
+        run: make build
+      - name: Build container image (no push)
+        run: make docker-build IMG=ghcr.io/halildogan/upo:ci
+
+  helm:
+    name: Helm lint & template
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - run: helm lint charts/unified-platform-operator
+      - run: helm template upo charts/unified-platform-operator --namespace upo-system > /dev/null

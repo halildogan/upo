@@ -1,0 +1,42 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+testbin/*
+cover.out
+cover.html
+
+# Go workspace file
+go.work
+go.work.sum
+
+# Test artifacts
+*.test
+*.out
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+
+# Build / dist
+dist/
+*.tar.gz
+
+# Kubebuilder / envtest
+testbin/
+__debug_bin*
+
+# Local kind / kubeconfig
+kubeconfig
+*.kubeconfig
+.local/
+
+# Helm
+charts/**/charts/
+charts/**/*.lock

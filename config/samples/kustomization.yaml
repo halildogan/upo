@@ -1,0 +1,6 @@
+# Sample CRs, aggregated for `kubectl apply -k config/samples`.
+resources:
+- platform_v1alpha1_tenant.yaml
+- platform_v1alpha1_environment.yaml
+- platform_v1alpha1_integration.yaml
+# +kubebuilder:scaffold:samples

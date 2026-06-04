@@ -1,0 +1,86 @@
+# End-to-end example: a tenant, the credentials it needs, an ephemeral preview
+# environment with a TTL, and a REST API integration — applied in one shot.
+# Apply order is not significant: the controllers requeue on DependencyNotMet
+# until the tenant namespace exists, then converge.
+---
+apiVersion: platform.upo.io/v1alpha1
+kind: Tenant
+metadata:
+  name: globex
+spec:
+  displayName: "Globex Inc."
+  tier: standard
+  networkIsolation: Strict
+  quota:
+    hard:
+      requests.cpu: "8"
+      requests.memory: 16Gi
+      pods: "60"
+  admins:
+  - kind: Group
+    name: globex-admins
+---
+# Credentials live in the tenant namespace and are referenced by name only.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: globex-shared-secrets
+  namespace: tenant-globex
+type: Opaque
+stringData:
+  DATABASE_URL: "postgres://globex:changeme@db.tenant-globex.svc:5432/app"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: globex-api-credentials
+  namespace: tenant-globex
+type: Opaque
+stringData:
+  token: "replace-with-real-token"
+---
+# An ephemeral PR-preview environment that self-destructs after 48h.
+apiVersion: platform.upo.io/v1alpha1
+kind: Environment
+metadata:
+  name: pr-1421
+  namespace: tenant-globex
+spec:
+  tenantRef:
+    name: globex
+  type: ephemeral
+  profile: small
+  ttl: 48h
+  domain: pr-1421.preview.globex.example.com
+  gitops:
+    provider: flux
+    autoSync: true
+    prune: true
+  source:
+    repoURL: https://github.com/globex/app
+    revision: refs/pull/1421/head
+    path: deploy/overlays/preview
+  variables:
+    LOG_LEVEL: debug
+  secretRefs:
+  - name: globex-shared-secrets
+    key: DATABASE_URL
+---
+apiVersion: platform.upo.io/v1alpha1
+kind: Integration
+metadata:
+  name: inventory-api
+  namespace: tenant-globex
+spec:
+  tenantRef:
+    name: globex
+  type: restapi
+  endpoint: https://api.inventory.globex.example.com
+  authSecretRef:
+    name: globex-api-credentials
+  healthCheck:
+    path: /health
+    intervalSeconds: 60
+  retryPolicy:
+    maxRetries: 5
+    backoff: exponential

@@ -1,0 +1,36 @@
+# A webhook Integration bound to the "acme" tenant. The controller resolves the
+# referenced credentials Secret, materializes a normalized connection Secret
+# ("stripe-events-connection"), and health-probes the endpoint with exponential
+# backoff, surfacing connectivity in status.conditions and status.phase.
+apiVersion: platform.upo.io/v1alpha1
+kind: Integration
+metadata:
+  name: stripe-events
+  namespace: tenant-acme
+spec:
+  tenantRef:
+    name: acme
+  type: webhook
+  endpoint: https://hooks.acme.example.com/stripe
+  authSecretRef:
+    name: stripe-webhook-credentials
+  headers:
+    X-UPO-Source: unified-platform-operator
+  events:
+  - payment.succeeded
+  - payment.failed
+  - subscription.updated
+  retryPolicy:
+    maxRetries: 8
+    backoff: exponential
+    initialDelay: 2s
+    maxDelay: 5m
+  rateLimit:
+    requestsPerSecond: 50
+    burst: 100
+  healthCheck:
+    path: /healthz
+    intervalSeconds: 30
+    timeoutSeconds: 5
+  tls:
+    insecureSkipVerify: false

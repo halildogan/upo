@@ -1,0 +1,18 @@
+# The default overlay composes the full control plane for `make deploy`.
+# It deploys, in the upo-system namespace: the CRDs, RBAC, the manager
+# Deployment + metrics Service, the webhook configuration + Service, and the
+# cert-manager Issuer/Certificate that secures the webhook server.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: upo-system
+
+resources:
+- ../crd
+- ../rbac
+- ../manager
+- ../webhook
+- ../certmanager
+- metrics_service.yaml
+# Uncomment once the Prometheus Operator (monitoring.coreos.com) CRDs are present:
+# - ../prometheus

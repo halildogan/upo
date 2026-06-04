@@ -1,0 +1,60 @@
+{{- if .Values.webhooks.enabled }}
+{{- $svc := include "upo.webhookServiceName" . -}}
+{{- $ns := .Release.Namespace -}}
+{{- $kinds := list (dict "kind" "tenant" "resource" "tenants") (dict "kind" "environment" "resource" "environments") (dict "kind" "integration" "resource" "integrations") -}}
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ include "upo.fullname" . }}-mutating
+  labels:
+    {{- include "upo.labels" . | nindent 4 }}
+  {{- if .Values.certManager.enabled }}
+  annotations:
+    cert-manager.io/inject-ca-from: {{ $ns }}/{{ include "upo.certificateName" . }}
+  {{- end }}
+webhooks:
+{{- range $k := $kinds }}
+- name: m{{ $k.kind }}-v1alpha1.kb.io
+  admissionReviewVersions: ["v1"]
+  sideEffects: None
+  failurePolicy: Fail
+  clientConfig:
+    service:
+      name: {{ $svc }}
+      namespace: {{ $ns }}
+      path: /mutate-platform-upo-io-v1alpha1-{{ $k.kind }}
+  rules:
+  - apiGroups: ["platform.upo.io"]
+    apiVersions: ["v1alpha1"]
+    operations: ["CREATE", "UPDATE"]
+    resources: ["{{ $k.resource }}"]
+{{- end }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: {{ include "upo.fullname" . }}-validating
+  labels:
+    {{- include "upo.labels" . | nindent 4 }}
+  {{- if .Values.certManager.enabled }}
+  annotations:
+    cert-manager.io/inject-ca-from: {{ $ns }}/{{ include "upo.certificateName" . }}
+  {{- end }}
+webhooks:
+{{- range $k := $kinds }}
+- name: v{{ $k.kind }}-v1alpha1.kb.io
+  admissionReviewVersions: ["v1"]
+  sideEffects: None
+  failurePolicy: Fail
+  clientConfig:
+    service:
+      name: {{ $svc }}
+      namespace: {{ $ns }}
+      path: /validate-platform-upo-io-v1alpha1-{{ $k.kind }}
+  rules:
+  - apiGroups: ["platform.upo.io"]
+    apiVersions: ["v1alpha1"]
+    operations: ["CREATE", "UPDATE"]
+    resources: ["{{ $k.resource }}"]
+{{- end }}
+{{- end }}

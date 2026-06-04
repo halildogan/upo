@@ -1,0 +1,25 @@
+# A self-signed Issuer and a Certificate that produces the webhook serving cert.
+# cert-manager's ca-injector then injects the CA bundle into the webhook
+# configurations annotated with cert-manager.io/inject-ca-from. Replace the
+# self-signed Issuer with a real CA/ClusterIssuer for production deployments.
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: upo-selfsigned-issuer
+  namespace: upo-system
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: upo-serving-cert
+  namespace: upo-system
+spec:
+  dnsNames:
+  - upo-webhook-service.upo-system.svc
+  - upo-webhook-service.upo-system.svc.cluster.local
+  issuerRef:
+    kind: Issuer
+    name: upo-selfsigned-issuer
+  secretName: upo-webhook-server-cert

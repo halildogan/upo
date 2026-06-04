@@ -1,0 +1,22 @@
+apiVersion: v2
+name: unified-platform-operator
+description: A Kubernetes-native platform control plane (Tenants, Environments, Integrations) for multi-tenant SaaS.
+type: application
+# version is the chart version; appVersion tracks the operator image tag.
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+- platform-engineering
+- multi-tenancy
+- gitops
+- operator
+- paas
+home: https://github.com/halildogan/upo
+sources:
+- https://github.com/halildogan/upo
+maintainers:
+- name: The Unified Platform Operator Authors
+annotations:
+  # cert-manager is required when webhooks are enabled (the default).
+  artifacthub.io/prerelease: "true"
+  artifacthub.io/license: Apache-2.0

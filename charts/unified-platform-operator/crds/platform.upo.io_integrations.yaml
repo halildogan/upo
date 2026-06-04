@@ -1,0 +1,262 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.5
+  name: integrations.platform.upo.io
+spec:
+  group: platform.upo.io
+  names:
+    categories:
+    - upo
+    - platform
+    kind: Integration
+    listKind: IntegrationList
+    plural: integrations
+    shortNames:
+    - intg
+    singular: integration
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.tenantRef.name
+      name: Tenant
+      type: string
+    - jsonPath: .spec.type
+      name: Type
+      type: string
+    - jsonPath: .status.phase
+      name: Phase
+      type: string
+    - jsonPath: .status.deliveredEvents
+      name: Delivered
+      type: integer
+    - jsonPath: .status.failedEvents
+      name: Failed
+      type: integer
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: |-
+          Integration models an external system connector (webhook, REST API, OAuth2,
+          database, messaging, or object store) as a first-class declarative resource
+          with managed credentials, health probing, and retry semantics.
+        type: object
+        properties:
+          apiVersion:
+            type: string
+          kind:
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: IntegrationSpec is the desired state of an Integration.
+            type: object
+            required:
+            - endpoint
+            - tenantRef
+            - type
+            properties:
+              authSecretRef:
+                description: AuthSecretRef references the Secret holding credentials. Same-namespace only.
+                type: object
+                required:
+                - name
+                properties:
+                  name:
+                    type: string
+                    minLength: 1
+                    maxLength: 253
+              endpoint:
+                description: Endpoint is the base URL or DSN of the external system.
+                type: string
+                minLength: 1
+                maxLength: 2048
+              events:
+                description: Events is the set of platform event types this integration subscribes to.
+                type: array
+                items:
+                  type: string
+                x-kubernetes-list-type: set
+              headers:
+                description: Headers are static headers attached to outbound requests.
+                type: object
+                additionalProperties:
+                  type: string
+              healthCheck:
+                description: HealthCheck configures active connectivity probing.
+                type: object
+                properties:
+                  intervalSeconds:
+                    type: integer
+                    format: int32
+                    minimum: 10
+                    default: 60
+                  path:
+                    type: string
+                    default: /healthz
+                  timeoutSeconds:
+                    type: integer
+                    format: int32
+                    minimum: 1
+                    default: 10
+              rateLimit:
+                description: RateLimit declares client-side throttling.
+                type: object
+                required:
+                - requestsPerSecond
+                properties:
+                  burst:
+                    type: integer
+                    format: int32
+                    minimum: 1
+                  requestsPerSecond:
+                    type: integer
+                    format: int32
+                    minimum: 1
+              retryPolicy:
+                description: RetryPolicy governs transient-failure retries.
+                type: object
+                properties:
+                  backoff:
+                    type: string
+                    enum:
+                    - fixed
+                    - exponential
+                    default: exponential
+                  initialDelay:
+                    type: string
+                  maxDelay:
+                    type: string
+                  maxRetries:
+                    type: integer
+                    format: int32
+                    minimum: 0
+                    maximum: 20
+                    default: 5
+              suspend:
+                description: Suspend disables the integration without deleting it.
+                type: boolean
+              tenantRef:
+                description: TenantRef binds this integration to an owning, cluster-scoped Tenant. Immutable.
+                type: object
+                required:
+                - name
+                properties:
+                  name:
+                    type: string
+                    minLength: 1
+                    maxLength: 253
+              tls:
+                description: TLS tunes transport security.
+                type: object
+                properties:
+                  caSecretRef:
+                    type: object
+                    required:
+                    - name
+                    properties:
+                      name:
+                        type: string
+                        minLength: 1
+                        maxLength: 253
+                  insecureSkipVerify:
+                    type: boolean
+              type:
+                description: Type selects the connector family.
+                type: string
+                enum:
+                - webhook
+                - restapi
+                - oauth2
+                - database
+                - messaging
+                - objectstore
+          status:
+            description: IntegrationStatus is the observed state of an Integration.
+            type: object
+            properties:
+              conditions:
+                type: array
+                items:
+                  description: Condition contains details for one aspect of the current state of this API Resource.
+                  type: object
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  properties:
+                    lastTransitionTime:
+                      type: string
+                      format: date-time
+                    message:
+                      type: string
+                      maxLength: 32768
+                    observedGeneration:
+                      type: integer
+                      format: int64
+                      minimum: 0
+                    reason:
+                      type: string
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                    status:
+                      type: string
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                    type:
+                      type: string
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              connectionSecretName:
+                type: string
+              deliveredEvents:
+                type: integer
+                format: int64
+              failedEvents:
+                type: integer
+                format: int64
+              lastError:
+                type: string
+              lastEventTime:
+                type: string
+                format: date-time
+              lastProbeTime:
+                type: string
+                format: date-time
+              lastReconcileTime:
+                type: string
+                format: date-time
+              observedEndpoint:
+                type: string
+              observedGeneration:
+                type: integer
+                format: int64
+              retries:
+                type: integer
+                format: int32
+              phase:
+                type: string
+                enum:
+                - Pending
+                - Connecting
+                - Connected
+                - Degraded
+                - Failed
+                - Disabled
+    served: true
+    storage: true
+    subresources:
+      status: {}

@@ -1,0 +1,32 @@
+# A staging Environment bound to the "acme" tenant, delivered by Argo CD. The
+# controller provisions the workload namespace "tenant-acme-staging", projects
+# the variables ConfigMap and replicated secrets, then creates an Argo CD
+# Application that syncs envs/staging from the repo into that namespace.
+apiVersion: platform.upo.io/v1alpha1
+kind: Environment
+metadata:
+  name: staging
+  namespace: tenant-acme
+spec:
+  tenantRef:
+    name: acme
+  type: staging
+  profile: large
+  domain: staging.acme.example.com
+  gitops:
+    provider: argocd
+    autoSync: true
+    prune: true
+  source:
+    repoURL: https://github.com/acme/platform-config
+    revision: main
+    path: envs/staging
+  variables:
+    LOG_LEVEL: info
+    FEATURE_FLAGS: "checkout-v2,search-rerank"
+  secretRefs:
+  - name: acme-shared-secrets
+    key: DATABASE_URL
+  - name: acme-shared-secrets
+    key: REDIS_URL
+    optional: true

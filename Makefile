@@ -32,13 +32,13 @@ help: ## Display this help.
 ##@ Development
 
 .PHONY: manifests
-manifests: controller-gen ## Generate CRDs, RBAC and webhook manifests.
+manifests: deps controller-gen ## Generate CRDs, RBAC and webhook manifests.
 	$(CONTROLLER_GEN) rbac:roleName=manager-role crd webhook paths="./..." \
 		output:crd:artifacts:config=config/crd/bases
 	cp config/crd/bases/*.yaml charts/unified-platform-operator/crds/
 
 .PHONY: generate
-generate: controller-gen ## Generate DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
+generate: deps controller-gen ## Generate DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
 
 .PHONY: fmt
@@ -49,8 +49,12 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	go vet ./...
 
+.PHONY: deps
+deps: ## Download module dependencies (materializes go.sum on a fresh checkout).
+	go mod download
+
 .PHONY: test
-test: manifests generate fmt vet envtest ## Run unit and integration tests.
+test: deps manifests generate fmt vet envtest ## Run unit and integration tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" \
 		go test $$(go list ./... | grep -v /test/e2e) -coverprofile cover.out
 
@@ -59,7 +63,7 @@ test-e2e: ## Run the e2e tests against a Kind k8s instance that is spun up.
 	go test ./test/e2e/ -v -ginkgo.v
 
 .PHONY: lint
-lint: golangci-lint ## Run golangci-lint linter.
+lint: deps golangci-lint ## Run golangci-lint linter.
 	$(GOLANGCI_LINT) run
 
 .PHONY: lint-fix
@@ -73,11 +77,11 @@ tidy: ## Run go mod tidy to materialize go.sum and the transitive graph.
 ##@ Build
 
 .PHONY: build
-build: manifests generate fmt vet ## Build manager binary.
+build: deps manifests generate fmt vet ## Build manager binary.
 	go build -o bin/manager cmd/main.go
 
 .PHONY: run
-run: manifests generate fmt vet ## Run a controller from your host against the configured cluster.
+run: deps manifests generate fmt vet ## Run a controller from your host against the configured cluster.
 	go run ./cmd/main.go
 
 .PHONY: docker-build
@@ -142,7 +146,7 @@ GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
 KUSTOMIZE_VERSION ?= v5.5.0
 CONTROLLER_TOOLS_VERSION ?= v0.16.5
 ENVTEST_VERSION ?= release-0.20
-GOLANGCI_LINT_VERSION ?= v1.62.2
+GOLANGCI_LINT_VERSION ?= latest
 
 .PHONY: kustomize
 kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
@@ -162,7 +166,7 @@ $(ENVTEST): $(LOCALBIN)
 .PHONY: golangci-lint
 golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
 $(GOLANGCI_LINT): $(LOCALBIN)
-	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/cmd/golangci-lint,$(GOLANGCI_LINT_VERSION))
+	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/v2/cmd/golangci-lint,$(GOLANGCI_LINT_VERSION))
 
 # go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
 # $1 - target path with name of binary

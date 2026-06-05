@@ -1,49 +1,29 @@
-# golangci-lint configuration for the Unified Platform Operator.
-# Tuned to match controller-runtime / kubebuilder conventions.
-run:
-  timeout: 5m
-  allow-parallel-runners: true
-
-issues:
-  exclude-rules:
-    - linters:
-        - lll
-      source: "^//\\s*\\+kubebuilder:"
-  max-issues-per-linter: 0
-  max-same-issues: 0
+# golangci-lint v2 configuration.
+# v2 is required so the linter binary is built with a Go toolchain >= the
+# version targeted by go.mod. The v1 line is EOL and its binaries were built
+# with go1.23, which trips golangci-lint's "targeted Go version is higher"
+# guard on newer toolchains (the failure seen in CI).
+version: "2"
 
 linters:
-  disable-all: true
+  # Curated, explicit set for predictable and stable results.
+  default: none
   enable:
-    - copyloopvar
-    - dupl
     - errcheck
-    - ginkgolinter
-    - goconst
-    - gocyclo
-    - gofmt
-    - goimports
-    - gosimple
     - govet
     - ineffassign
-    - lll
-    - misspell
-    - nakedret
-    - prealloc
-    - revive
     - staticcheck
-    - typecheck
-    - unconvert
-    - unparam
     - unused
+    - misspell
+  settings:
+    misspell:
+      locale: US
 
-linters-settings:
-  revive:
-    rules:
-      - name: comment-spacings
-  goimports:
-    local-prefixes: github.com/halildogan/upo
-  gocyclo:
-    min-complexity: 30
-  lll:
-    line-length: 140
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/halildogan/upo

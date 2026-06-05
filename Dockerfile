@@ -9,8 +9,9 @@ WORKDIR /workspace
 
 # Copy the Go module manifests first to leverage Docker layer caching: the
 # expensive `go mod download` step is only re-run when go.mod / go.sum change.
-COPY go.mod go.mod
-COPY go.sum go.sum
+# go.sum is optional here (go.sum* tolerates its absence on a fresh checkout);
+# `go mod download` materializes it inside the build.
+COPY go.mod go.sum* ./
 RUN go mod download
 
 # Copy the Go sources.

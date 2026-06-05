@@ -19,8 +19,11 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+      # Materialize go.sum so the linter can load/type-check the packages.
+      - run: go mod download
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
-          version: v1.62.2
-          args: --timeout=5m
+          # 'latest' guarantees the binary is built with a Go toolchain >= the
+          # version targeted by go.mod, avoiding the version-skew failure.
+          version: latest

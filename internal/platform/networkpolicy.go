@@ -19,6 +19,7 @@ package platform
 import (
 	"context"
 
+	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -84,8 +85,8 @@ func ReconcileNetworkPolicy(
 			np.Spec.Ingress = []networkingv1.NetworkPolicyIngressRule{{
 				From: sameNamespace,
 			}}
-			udp := networkingv1.ProtocolUDP
-			tcp := networkingv1.ProtocolTCP
+			udp := corev1.ProtocolUDP
+			tcp := corev1.ProtocolTCP
 			np.Spec.Egress = []networkingv1.NetworkPolicyEgressRule{
 				{To: sameNamespace},
 				{ // permit cluster DNS resolution

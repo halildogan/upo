@@ -4,7 +4,7 @@
 # Image URL to use all building/pushing image targets
 IMG ?= ghcr.io/halildogan/upo:latest
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.32.0
+ENVTEST_K8S_VERSION = 1.33.0
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -145,7 +145,7 @@ GOLANGCI_LINT ?= $(LOCALBIN)/golangci-lint
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v5.5.0
 CONTROLLER_TOOLS_VERSION ?= v0.16.5
-ENVTEST_VERSION ?= release-0.20
+ENVTEST_VERSION ?= release-0.21
 GOLANGCI_LINT_VERSION ?= latest
 
 .PHONY: kustomize

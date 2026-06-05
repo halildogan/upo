@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------
 # Build the manager binary using a pinned, reproducible toolchain.
 # ---------------------------------------------------------------------------
-FROM golang:1.24 AS builder
+FROM golang:1.26 AS builder
 ARG TARGETOS
 ARG TARGETARCH
 

@@ -77,7 +77,7 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (res
 		outcome := metrics.ResultSuccess
 		if retErr != nil {
 			outcome = metrics.ResultError
-		} else if result.RequeueAfter > 0 || result.Requeue {
+		} else if result.RequeueAfter > 0 {
 			outcome = metrics.ResultRequeue
 		}
 		metrics.RecordReconcile(tenantControllerName, outcome, time.Since(start).Seconds())
@@ -100,10 +100,9 @@ func (r *TenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (res
 	// Ensure our finalizer is present so deletion is observable.
 	if !controllerutil.ContainsFinalizer(tenant, platformv1alpha1.TenantFinalizer) {
 		controllerutil.AddFinalizer(tenant, platformv1alpha1.TenantFinalizer)
-		if err := r.Update(ctx, tenant); err != nil {
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{Requeue: true}, nil
+		// The Update re-triggers reconciliation via the watch, so no explicit
+		// requeue is needed (and Result.Requeue is deprecated).
+		return ctrl.Result{}, r.Update(ctx, tenant)
 	}
 
 	return r.reconcileTenant(ctx, tenant)

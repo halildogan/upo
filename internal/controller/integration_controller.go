@@ -71,7 +71,7 @@ func (r *IntegrationReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		outcome := metrics.ResultSuccess
 		if retErr != nil {
 			outcome = metrics.ResultError
-		} else if result.RequeueAfter > 0 || result.Requeue {
+		} else if result.RequeueAfter > 0 {
 			outcome = metrics.ResultRequeue
 		}
 		metrics.RecordReconcile(integrationControllerName, outcome, time.Since(start).Seconds())
@@ -92,10 +92,8 @@ func (r *IntegrationReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 	if !controllerutil.ContainsFinalizer(intg, platformv1alpha1.IntegrationFinalizer) {
 		controllerutil.AddFinalizer(intg, platformv1alpha1.IntegrationFinalizer)
-		if err := r.Update(ctx, intg); err != nil {
-			return ctrl.Result{}, err
-		}
-		return ctrl.Result{Requeue: true}, nil
+		// The Update re-triggers reconciliation via the watch (Result.Requeue is deprecated).
+		return ctrl.Result{}, r.Update(ctx, intg)
 	}
 
 	return r.reconcileIntegration(ctx, intg)

@@ -7,14 +7,8 @@ ARG TARGETARCH
 
 WORKDIR /workspace
 
-# Copy the Go module manifests first to leverage Docker layer caching: the
-# expensive `go mod download` step is only re-run when go.mod / go.sum change.
-# go.sum is optional here (go.sum* tolerates its absence on a fresh checkout);
-# `go mod download` materializes it inside the build.
+# Copy module manifests (go.sum optional) and the Go sources.
 COPY go.mod go.sum* ./
-RUN go mod download
-
-# Copy the Go sources.
 COPY cmd/ cmd/
 COPY api/ api/
 COPY internal/ internal/
@@ -22,7 +16,10 @@ COPY pkg/ pkg/
 
 # Build a static, stripped binary for the target platform. CGO is disabled to
 # produce a fully static binary suitable for the distroless static base image.
-RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} \
+# GOFLAGS=-mod=mod lets the build resolve the module graph and write go.sum on
+# the fly, since go.sum is not committed in this repo. Once go.sum is committed
+# you can drop -mod=mod and restore a cached `COPY go.mod go.sum` + download layer.
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} GOFLAGS=-mod=mod \
     go build -trimpath -ldflags="-s -w" -a -o manager cmd/main.go
 
 # ---------------------------------------------------------------------------

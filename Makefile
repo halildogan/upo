@@ -50,8 +50,8 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 .PHONY: deps
-deps: ## Download module dependencies (materializes go.sum on a fresh checkout).
-	go mod download
+deps: ## Resolve the module graph and materialize go.mod/go.sum (needed when go.sum is not committed).
+	go mod tidy
 
 .PHONY: test
 test: deps manifests generate fmt vet envtest ## Run unit and integration tests.

@@ -19,8 +19,10 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
-      # Materialize go.sum so the linter can load/type-check the packages.
-      - run: go mod download
+      # Resolve the full module graph + go.sum so the linter can type-check.
+      # `go mod tidy` (not download) is required because go.sum is not committed
+      # and go.mod lists only direct dependencies.
+      - run: go mod tidy
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v7
         with:

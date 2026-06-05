@@ -43,7 +43,7 @@ func ProfileQuota(p platformv1alpha1.ResourceProfile) corev1.ResourceList {
 
 // quota builds a ResourceList that bounds both requests and limits for CPU and
 // memory and caps the pod count, the four dimensions that matter most for
-// noisy-neighbour isolation between environments.
+// noisy-neighbor isolation between environments.
 func quota(cpu, mem, pods string) corev1.ResourceList {
 	return corev1.ResourceList{
 		corev1.ResourceRequestsCPU:    mustQuantity(cpu),

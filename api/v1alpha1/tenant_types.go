@@ -92,7 +92,7 @@ type TenantLimits struct {
 	Max corev1.ResourceList `json:"max,omitempty"`
 }
 
-// LifecyclePolicy controls suspension and deletion behaviour for a tenant.
+// LifecyclePolicy controls suspension and deletion behavior for a tenant.
 type LifecyclePolicy struct {
 	// Suspended, when true, scales the tenant down: workloads are cordoned via
 	// an updated NetworkPolicy and a zero-pods ResourceQuota override, without
@@ -161,7 +161,7 @@ type TenantSpec struct {
 	// +optional
 	ExtraLabels map[string]string `json:"extraLabels,omitempty"`
 
-	// Lifecycle controls suspension and deletion behaviour.
+	// Lifecycle controls suspension and deletion behavior.
 	//
 	// +optional
 	Lifecycle LifecyclePolicy `json:"lifecycle,omitempty"`

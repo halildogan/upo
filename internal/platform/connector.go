@@ -59,7 +59,7 @@ type Prober interface {
 	Probe(ctx context.Context, req ProbeRequest) error
 }
 
-// HTTPProber probes HTTP(S) endpoints. It honours HTTPS_PROXY/HTTP_PROXY from
+// HTTPProber probes HTTP(S) endpoints. It honors HTTPS_PROXY/HTTP_PROXY from
 // the environment (required in egress-restricted clusters) and enforces a
 // modern TLS floor unless explicitly told to skip verification.
 type HTTPProber struct{}

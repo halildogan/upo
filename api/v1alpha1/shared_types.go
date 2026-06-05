@@ -85,7 +85,7 @@ const (
 
 // TenantReference identifies a cluster-scoped Tenant by name. It is used by the
 // namespaced Environment and Integration resources to bind themselves to an
-// owning tenant for authorization, labelling, and quota accounting.
+// owning tenant for authorization, labeling, and quota accounting.
 type TenantReference struct {
 	// Name is the metadata.name of the cluster-scoped Tenant resource.
 	//

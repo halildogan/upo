@@ -57,12 +57,17 @@ func ReconcileNamespace(
 	})
 }
 
-// EnsureNamespaceDeleted deletes the named namespace if it exists and is not
-// already terminating. It is safe to call repeatedly from a finalizer: a
-// NotFound is treated as success, and an in-progress deletion is a no-op.
+// EnsureNamespaceDeleted requests deletion of the named namespace and reports
+// whether the owner's finalizer may be released. It is safe to call repeatedly:
+// a NotFound is success, and an already-terminating namespace is a no-op.
 //
-// It returns done=true once the namespace is fully gone so the caller can drop
-// its finalizer.
+// It returns done=true once deletion has been *initiated* (the namespace is
+// gone or now terminating). The owner's finalizer is intentionally NOT blocked
+// on the namespace fully disappearing: the namespace lifecycle controller
+// drains and removes it asynchronously, and blocking would wedge the owner in
+// Terminating until every workload drains (and would never complete under
+// envtest, which has no namespace controller). It returns (false, err) only
+// when the API call itself fails, so the caller retries with backoff.
 func EnsureNamespaceDeleted(ctx context.Context, c client.Client, name string) (done bool, err error) {
 	ns := &corev1.Namespace{}
 	if err := c.Get(ctx, client.ObjectKey{Name: name}, ns); err != nil {
@@ -76,6 +81,6 @@ func EnsureNamespaceDeleted(ctx context.Context, c client.Client, name string) (
 			return false, err
 		}
 	}
-	// Still present (terminating); caller should requeue until it disappears.
-	return false, nil
+	// Deletion requested (namespace gone or terminating) — safe to drop the finalizer.
+	return true, nil
 }

@@ -45,7 +45,7 @@ jobs:
       - name: Package Helm chart
         run: helm package charts/unified-platform-operator --version "${GITHUB_REF_NAME#v}" --app-version "${GITHUB_REF_NAME#v}"
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             install.yaml

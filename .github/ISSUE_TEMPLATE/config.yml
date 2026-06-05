@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/halildogan/upo/security/advisories/new
+    about: Report security issues privately — see SECURITY.md. Do not open a public issue.
+  - name: Question / discussion
+    url: https://github.com/halildogan/upo/discussions
+    about: Ask usage questions or discuss design in Discussions.

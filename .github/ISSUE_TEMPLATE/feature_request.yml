@@ -1,0 +1,33 @@
+name: Feature request
+description: Propose a capability or API change
+labels: ["enhancement", "triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Platform problem
+      description: What platform-engineering problem are you trying to solve? Describe the problem before the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior / API
+      description: The desired CRD field(s) or controller behavior. Include example YAML if relevant.
+      render: yaml
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: dropdown
+    id: roadmap
+    attributes:
+      label: Does this align with an existing ROADMAP item?
+      options:
+        - "Yes"
+        - "No"
+        - "Not sure"
+    validations:
+      required: true

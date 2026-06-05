@@ -1,0 +1,57 @@
+name: Bug report
+description: Report a problem with the Unified Platform Operator
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. Please do **not** report security issues here — see SECURITY.md.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and the impact.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Minimal steps and the CR YAML you applied.
+      render: yaml
+    validations:
+      required: true
+  - type: textarea
+    id: status
+    attributes:
+      label: Resource status
+      description: Output of `kubectl get <kind> <name> -o yaml` (status section) and relevant manager logs.
+      render: shell
+  - type: input
+    id: operator-version
+    attributes:
+      label: Operator version / image tag
+    validations:
+      required: true
+  - type: input
+    id: k8s-version
+    attributes:
+      label: Kubernetes version (`kubectl version --short`)
+    validations:
+      required: true
+  - type: dropdown
+    id: install-method
+    attributes:
+      label: Install method
+      options:
+        - Helm
+        - kustomize (make deploy)
+        - other
+    validations:
+      required: true
